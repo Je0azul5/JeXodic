@@ -1,0 +1,14 @@
+import test from 'node:test';
+import * as A from 'astronomy-engine';
+import assert from 'node:assert/strict';
+import {chart,numerology,birthTime,longitude,signOf,localDay,dailyIndex} from '../src/calculations.js';
+const profile=(date,time='12:00',zone='America/Bogota',unknown=false)=>({date,time,unknown,place:{latitude:4.6097,longitude:-74.0817,timezone:zone}});
+test('preserves master numbers at each stage',()=>{assert.equal(numerology('2000-01-08').value,11);assert.equal(numerology('2000-09-29').value,22);assert.equal(numerology('2009-11-11').value,33);assert.equal(numerology('2009-11-11').base,6);assert.equal(numerology('1990-05-24').master,false);assert.deepEqual(numerology('2009-11-11').parts.map(x=>x.value),[11,11,11]);});
+test('leap years validated',()=>{assert.equal(numerology('2000-02-29').value,6);assert.throws(()=>numerology('1900-02-29'));assert.throws(()=>birthTime(profile('2001-02-29')));});
+test('historical DST and timezone conversion',()=>{assert.equal(birthTime(profile('1992-06-01')).offset,-240);assert.equal(birthTime(profile('1994-06-01')).offset,-300);assert.equal(birthTime(profile('2000-01-01')).toUTC().hour,17);assert.throws(()=>birthTime(profile('2024-03-10','02:30','America/New_York')),/no existió/);assert.throws(()=>birthTime(profile('2024-11-03','01:30','America/New_York')),/dos veces/);});
+test('March equinox 2024 solar ingress near 03:06 UTC',()=>{assert.equal(signOf(longitude('Sun',new Date('2024-03-20T02:50:00Z'))),11);assert.equal(signOf(longitude('Sun',new Date('2024-03-20T03:20:00Z'))),0);});
+test('April 8 eclipse alignment and unknown time handling',()=>{const c=chart(profile('2024-04-08','13:20'));assert.ok(Math.abs(c.planets[0].lon-c.planets[1].lon)<1);assert.ok(c.asc>=0&&c.asc<360);assert.ok(c.planets.every(p=>p.house>=1&&p.house<=12));const u=chart(profile('2024-04-08','',undefined,true));assert.equal(u.asc,null);assert.ok(u.planets.every(p=>p.house===null));});
+test('all 10 bodies return finite positions',()=>{const c=chart(profile('1995-10-15','10:30'));assert.equal(c.planets.length,10);assert.ok(c.planets.every(p=>Number.isFinite(p.lon)));assert.equal(c.planets[0].sign,6);});
+test('stable local calendar content',()=>{const day=localDay(new Date(2024,1,29,23,59));assert.equal(day,'2024-02-29');assert.equal(dailyIndex(day,4),dailyIndex(day,4));});
+
+test('ascendant lies on the eastern horizon at several latitudes',()=>{for(const latitude of [-45,0,4.6097,48]){const p=profile('1995-10-15','10:30');p.place.latitude=latitude;const c=chart(p),d=new Date(c.utc),v=A.VectorFromSphere(new A.Spherical(0,c.asc,1),d),e=A.EquatorFromVector(A.RotateVector(A.Rotation_ECT_EQD(d),v)),h=A.Horizon(d,new A.Observer(latitude,p.place.longitude,0),e.ra,e.dec);assert.ok(Math.abs(h.altitude)<0.001);assert.ok(h.azimuth>0&&h.azimuth<180);}});
