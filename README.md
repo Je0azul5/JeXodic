@@ -21,7 +21,7 @@ La compilación estática queda en `web/dist`; se puede servir en cualquier aloj
 
 ## Primera versión
 
-- Hoy: lectura editorial general por signo, estable por fecha local, con amor, trabajo, bienestar y reflexión. No utiliza tránsitos. Frases originales con favoritos, compartir y descarga de tarjeta SVG.
+- Hoy: lectura editorial general por signo, estable por fecha local, con amor, trabajo, bienestar y reflexión. No utiliza tránsitos. Frases originales con favoritos, compartir y vista previa y descarga de tarjetas PNG para Instagram: publicación (1080 × 1350) e historia (1080 × 1920).
 - Mi carta: diez cuerpos, rueda accesible con selección, posiciones, ascendente, casas iguales, aspectos mayores con orbe fijo de 6° e interpretaciones simbólicas.
 - Numerología: reducción independiente de día, mes y año, preservando 11, 22 y 33 en todas las etapas; cálculo, reducción asociada, fortalezas, retos y preguntas.
 - Compatibilidad: exploración por elementos y signos para pareja, amistad y trabajo, sin puntuaciones inventadas.
