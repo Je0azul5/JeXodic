@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {tarotDeck,drawTarot,randomBelow} from '../src/tarot-deck.js';
+import {tarotDeck,drawTarot,randomBelow,shuffleTarot,cutTarot,dealTarot} from '../src/tarot-deck.js';
 import {normalizeInput,validateOutput,handleAI,promptFor} from '../server/ai.js';
 
 const day=()=>new Date().toISOString().slice(0,10);
@@ -27,6 +27,19 @@ test('random source discards values outside an unbiased range',()=>{
   let calls=0;
   assert.equal(randomBelow(10,array=>{array[0]=calls++===0?0xffffffff:123;}),3);
   assert.equal(calls,2);
+});
+test('cutting into three preserves all 78 cards and puts the chosen pile on top',()=>{
+  const deck=shuffleTarot();const before=structuredClone(deck);
+  for(let pile=0;pile<3;pile++){
+    const cut=cutTarot(deck,pile);
+    assert.equal(cut.length,78);assert.equal(new Set(cut.map(c=>c.id)).size,78);
+    assert.deepEqual(cut.slice(0,26),deck.slice(pile*26,pile*26+26));
+    assert.deepEqual([...cut].sort((a,b)=>a.id.localeCompare(b.id)),[...deck].sort((a,b)=>a.id.localeCompare(b.id)));
+    assert.deepEqual(dealTarot(cut,'three'),cut.slice(0,3));
+    assert.deepEqual(dealTarot(cut,'one'),cut.slice(0,1));
+  }
+  assert.deepEqual(deck,before);
+  assert.throws(()=>cutTarot(deck,-1));assert.throws(()=>cutTarot(deck,3));assert.throws(()=>cutTarot(deck.slice(1),0));
 });
 test('tarot input validates question, spread, distinct card IDs and orientation',()=>{
   const valid=input();assert.deepEqual(normalizeInput(valid),valid);

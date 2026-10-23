@@ -65,9 +65,21 @@ export function randomBelow(max, random=crypto.getRandomValues.bind(crypto)) {
   do {random(value);} while(value[0]>=limit);
   return value[0]%max;
 }
+export function shuffleTarot(random) {
+  const deck=tarotDeck.map(card=>card.id);
+  for(let i=deck.length-1;i>0;i--){const j=randomBelow(i+1,random);[deck[i],deck[j]]=[deck[j],deck[i]];}
+  return deck.map(id=>({id,reversed:randomBelow(2,random)===1}));
+}
+export function cutTarot(deck, firstPile) {
+  if(deck.length!==78||!Number.isInteger(firstPile)||firstPile<0||firstPile>2)throw new Error('Corte no válido.');
+  const piles=[deck.slice(0,26),deck.slice(26,52),deck.slice(52)];
+  return [0,1,2].flatMap(offset=>piles[(firstPile+offset)%3]);
+}
+export function dealTarot(deck, spread) {
+  if(!Object.hasOwn(tarotSpreads,spread)||deck.length!==78)throw new Error('Tirada no válida.');
+  return deck.slice(0,tarotSpreads[spread].positions.length).map(card=>({...card}));
+}
 export function drawTarot(spread, random) {
   if(!Object.hasOwn(tarotSpreads,spread))throw new Error('Tirada no válida.');
-  const deck=tarotDeck.map(card=>card.id),count=tarotSpreads[spread].positions.length;
-  for(let i=deck.length-1;i>0;i--){const j=randomBelow(i+1,random);[deck[i],deck[j]]=[deck[j],deck[i]];}
-  return deck.slice(0,count).map(id=>({id,reversed:randomBelow(2,random)===1}));
+  return dealTarot(shuffleTarot(random),spread);
 }
