@@ -1,5 +1,7 @@
 # JeXodic
 
+Web pública en Azure: [jexodic.azurewebsites.net](https://jexodic.azurewebsites.net).
+
 App web en español para explorar astrología occidental tropical y numerología como entretenimiento y reflexión personal. Sin cuentas ni cobros.
 
 ## Desarrollo
@@ -17,7 +19,37 @@ npm test
 npm run build
 ```
 
-La compilación genera un Worker ESM en `web/dist/server/index.js` y el cliente en `web/dist/client`. El Worker sirve los archivos públicos y las rutas de IA; necesita un alojamiento compatible con Cloudflare Workers. La navegación usa fragmentos.
+La compilación de Sites genera un Worker ESM en `web/dist/server/index.js` y el cliente en `web/dist/client`. El Worker sirve los archivos públicos y las rutas de IA; necesita un alojamiento compatible con Cloudflare Workers. La navegación usa fragmentos.
+
+## Azure App Service Linux
+
+La aplicación también se empaqueta para Node.js 24 en App Service, conservando el código del cliente y la API de Azure OpenAI. Usa el plan existente `ASP-gomun-bb4f` (Linux B2), grupo `gomun`, región `canadacentral`, suscripción `JeSubs`. No crea otro plan ni modifica las otras aplicaciones del plan.
+
+Desde la raíz del repositorio:
+
+```sh
+npm --prefix web ci
+npm --prefix web test
+npm --prefix web run package:azure
+az deployment sub what-if --subscription 683edf68-183f-4abd-9520-f25e5766bfef --location canadacentral --template-file infra/main.bicep --parameters @infra/main.parameters.json
+az deployment sub create --subscription 683edf68-183f-4abd-9520-f25e5766bfef --name jexodic-appservice --location canadacentral --template-file infra/main.bicep --parameters @infra/main.parameters.json
+```
+
+El ZIP `web/dist/jexodic-azure.zip` contiene únicamente `package.json` y `server.mjs`, con los archivos públicos incluidos en el servidor. No contiene dependencias externas de ejecución, fuentes, tests ni secretos. Node escucha en `PORT` y `0.0.0.0`. `npm start` arranca el paquete; `/healthz` comprueba el servidor.
+
+Configura la clave en **App Service → Environment variables → App settings**, como `AZURE_OPENAI_API_KEY`. El endpoint y deployment, `PUBLIC_ORIGIN`, `NODE_ENV=production` y `AI_DAILY_LIMIT=100` los configura Bicep. App Service cifra sus settings en reposo; los administradores autorizados pueden leerlos. No uses variables `VITE_` para secretos.
+
+También puedes ejecutar `node web/scripts/set-azure-key.mjs <subscription-id> gomun jexodic` y proporcionar un objeto JSON con el campo `key` en su entrada privada. El script oculta la entrada y envía el secreto a Azure por una tubería, sin colocarlo en argumentos o archivos. **Reaplica la clave después de cada despliegue de infraestructura**, porque el recurso de settings de Bicep sustituye esa colección.
+
+```sh
+az webapp deploy --subscription 683edf68-183f-4abd-9520-f25e5766bfef --resource-group gomun --name jexodic --src-path web/dist/jexodic-azure.zip --type zip
+```
+
+Se usa autenticación de Azure CLI/Entra para desplegar; FTP y SCM basic auth permanecen deshabilitados. `WEBSITE_RUN_FROM_PACKAGE=1` ejecuta el paquete preparado, con compilación remota desactivada. La URL real se obtiene del output `publicOrigin` de Bicep, incluido cualquier sufijo regional asignado por Azure.
+
+La versión de Azure es **pública**, según la elección del propietario. La API deriva la identidad del visitante en el servidor para sus límites; no acepta como identidad una cabecera de Sites enviada por el cliente. Se limita a seis solicitudes por minuto por IP y, de forma predeterminada, 100 generaciones nuevas por proceso y día UTC. La caché de lecturas compartidas tiene 256 entradas como máximo; las preguntas de tarot siguen sin entrar en ella. Caché y límites se reinician al reiniciar el proceso, y no equivalen a una cuota distribuida ni a un límite de gasto de la cuenta de Azure OpenAI. Con varias instancias, cada proceso tendrá su propio límite. Las llamadas de Azure OpenAI se facturan por separado del plan.
+
+[Configuración oficial de Node.js en App Service](https://learn.microsoft.com/en-us/azure/app-service/configure-language-nodejs) · [Ejecución desde ZIP](https://learn.microsoft.com/en-us/azure/app-service/deploy-run-package).
 
 ## Primera versión
 

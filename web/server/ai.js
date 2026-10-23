@@ -114,7 +114,7 @@ export async function handleAI(request, env, dependencies={}) {
   if (path !== '/api/ai/generate') return reply({error:'Ruta no encontrada.'},404);
   if (request.method !== 'POST') return reply({error:'Método no permitido.'},405);
   // Sites supplies this identity after sign-in. Never trust a client-supplied ID.
-  const identity = dependencies.local ? 'local-preview' : request.headers.get('oai-authenticated-user-id');
+  const identity = dependencies.identity || (dependencies.local ? 'local-preview' : request.headers.get('oai-authenticated-user-id'));
   if (!identity) return reply({error:'Inicia sesión para generar contenido.'},401);
   const origin = request.headers.get('origin');
   if (origin && origin !== new URL(request.url).origin) return reply({error:'Solicitud no permitida.'},403);
@@ -142,6 +142,7 @@ export async function handleAI(request, env, dependencies={}) {
   limit.count++; limits.set(identity,limit);
   try {
     if (!pending.has(hash)) {
+      if (dependencies.allowGeneration && !dependencies.allowGeneration()) return reply({error:'La inspiración de hoy alcanzó su límite de consultas. Puedes seguir explorando el contenido editorial y tus cartas.'},429);
       const task = (async()=>{
         const content = await generateContent(input,env,dependencies.fetcher);
         const result = {kind:input.kind,day:input.day,source:'ai',content};

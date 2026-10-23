@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": { "value": "jexodic" },
+    "location": { "value": "canadacentral" },
+    "sessionId": { "value": "E33D58E0-AC28-4412-B13F-88EEA1E21AA6" },
+    "deployedBy": { "value": "Jhonatan Alvarado" },
+    "createdAt": { "value": "2026-10-23T12:52:50.4115890-05:00" },
+    "resourceGroupName": { "value": "gomun" },
+    "appServicePlanName": { "value": "ASP-gomun-bb4f" },
+    "appServiceName": { "value": "jexodic" }
+  }
+}

@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "node scripts/build.mjs",
+    "build:azure": "node scripts/build-azure.mjs",
+    "package:azure": "npm run build:azure && node scripts/package-azure.mjs",
+    "start": "node dist/azure/server.mjs",
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {
