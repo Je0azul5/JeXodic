@@ -4,7 +4,7 @@ export const cardFormats = {
 };
 
 // The preview and the downloaded PNG use the same canvas.
-export function drawQuoteCard(canvas, quote, day, format = 'post') {
+export function drawQuoteCard(canvas, quote, day, format = 'post', credit = 'FRASE ORIGINAL DE JEXODIC') {
   const { width: w, height: h } = cardFormats[format];
   canvas.width = w;
   canvas.height = h;
@@ -72,7 +72,7 @@ export function drawQuoteCard(canvas, quote, day, format = 'post') {
   ctx.stroke();
   ctx.fillStyle = '#d9bd87';
   ctx.font = '18px Arial, sans-serif';
-  ctx.fillText('FRASE ORIGINAL DE JEXODIC', 540, footerY);
+  ctx.fillText(credit, 540, footerY);
   ctx.fillStyle = '#b7aabe';
   ctx.font = '20px Arial, sans-serif';
   ctx.fillText(day.split('-').reverse().join(' · '), 540, footerY + 44);

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "vite build",
+    "build": "node scripts/build.mjs",
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "luxon": "3.7.2"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "vite": "7.3.7"
   }
 }
